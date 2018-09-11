@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>10</ID>
+      <Description>"Save at option menu (O key) - Fixes stuttering"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>//This script moves an autosaving feature so that it only occurs
+//when the options (o) window is opened. This gets rid of microstuttering
+//and will improve performance greatly if you're speedhacking.
+//
+//As long as you exit the game normally, it shouldn't cause any issues.
+//And even if you don't, it's not that big of an issue.
+//One day, I'll move autosaving to a separate thread.
+[ENABLE]
+alloc(autosavenewmem,2048)
+label(autosavereturnpoint)
+label(autosaveoriginal)
+label(autosaveexit)
+
+autosavenewmem:
+    push eax
+    mov al, byte [previousIsOptions]
+    cmp byte [isOptions], al
+    pop eax
+    je Cube.exe+20C83D //leave if options menu has not changed
+    //else
+    push eax
+    mov al, byte [isOptions]
+    mov byte [previousIsOptions], al
+    cmp al, 01
+    pop eax
+    jne Cube.exe+20C83D //leave if not 1
+
+autosaveoriginal:
+lea ecx,[edi+000000AC]
+
+autosaveexit:
+jmp autosavereturnpoint
+
+"Cube.exe"+20C717:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    jmp autosavenewmem
+    nop
+autosavereturnpoint:
+
+
+alloc(optionssave,2048)
+label(optionssavereturnpoint)
+label(optionssaveoriginalcode)
+label(optionssaveleave)
+
+optionssave:
+    push eax
+    mov al, byte [eax+ecx*4] //remember if options is up
+    mov byte [isOptions], al
+    pop eax
+
+optionssaveoriginalcode:
+    cmp dword ptr [eax+ecx*4],00
+    jne Cube.exe+7F3A8
+
+optionssaveleave:
+    jmp optionssavereturnpoint
+
+isOptions:
+    db 00
+
+previousIsOptions:
+    db 00
+
+"Cube.exe"+7F222:
+    jmp optionssave
+    nop
+    nop
+    nop
+    nop
+    nop
+
+optionssavereturnpoint:
+
+
+
+
+[DISABLE]
+dealloc(autosavenewmem)
+"Cube.exe"+20C717:
+    je Cube.exe+20C83D
+    lea ecx,[edi+000000AC]
+//Alt: db 8D 8F AC 00 00 00
+dealloc(optionssave)
+"Cube.exe"+7F222:
+    cmp dword ptr [eax+ecx*4],00
+    jne Cube.exe+7F3A8
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>
